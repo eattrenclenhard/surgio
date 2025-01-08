@@ -120,7 +120,7 @@ test('CustomProvider with hooks', async (t) => {
     {
       type: NodeTypeEnum.Shadowsocks,
       nodeName: 'test',
-      hostname: 'example.com',
+      hostname: 'example.org',
       port: 443,
       method: 'chacha20-ietf-poly1305',
       password: 'password',

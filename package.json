@@ -104,6 +104,7 @@
     "hpagent": "^1.2.0",
     "inquirer": "^8.2.6",
     "ioredis": "^5.3.2",
+    "js-base64": "^3.7.7",
     "lodash": "^4.17.21",
     "micromatch": "^4.0.5",
     "ms": "^2.1.3",

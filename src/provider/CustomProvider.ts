@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Base64 } from 'js-base64';
+import { Base64 } from 'js-base64'
 
 import {
   CustomProviderConfig,
@@ -71,23 +71,23 @@ export default class CustomProvider extends Provider {
     nodeList.forEach((node, index) => {
       try {
         if (node.base64) {
-          const base64Pattern = /^(ss|vmess):\/\/([A-Za-z0-9+/=]+)(#.*)?$/;
-          const match = node.base64.match(base64Pattern);
+          const base64Pattern = /^(ss|vmess):\/\/([A-Za-z0-9+/=]+)(#.*)?$/
+          const match = node.base64.match(base64Pattern)
 
           if (match) {
             const nodeTypeMap: { [key: string]: NodeTypeEnum } = {
               ss: NodeTypeEnum.Shadowsocks,
               vmess: NodeTypeEnum.Vmess,
-            };
+            }
 
-            const nodeType = nodeTypeMap[match[1]];
-            const base64String = match[2];
-            const decoded = Base64.decode(base64String);
+            const nodeType = nodeTypeMap[match[1]]
+            const base64String = match[2]
+            const decoded = Base64.decode(base64String)
+
             switch (nodeType) {
-              case NodeTypeEnum.Shadowsocks:
-                // (nodeType === NodeTypeEnum.Shadowsocks)
-                const [method, passwordWithHost, port] = decoded.split(':');
-                const [password, hostname] = passwordWithHost.split('@');
+              case NodeTypeEnum.Shadowsocks: {
+                const [method, passwordWithHost, port] = decoded.split(':')
+                const [password, hostname] = passwordWithHost.split('@')
 
                 node = {
                   ...node,
@@ -96,22 +96,42 @@ export default class CustomProvider extends Provider {
                   port: parseInt(port, 10),
                   method,
                   password,
-                };
-                break;
-              
-              case NodeTypeEnum.Vmess:
-                break;
-              default:
-                console.error('Base64 extraction is only supported for shadowsocks and vmess');
-                break;
+                }
+                break
+              }
+              case NodeTypeEnum.Vmess: {
+                const config = JSON.parse(decoded)
+
+                if (!config.add || !config.port || !config.id) {
+                  throw new Error(
+                    'Missing required fields in vmess configuration',
+                  )
+                }
+
+                node = {
+                  ...node,
+                  type: nodeType,
+                  hostname: config.add,
+                  port: config.port,
+                  uuid: config.id,
+                  network: config.net || undefined,
+                  alterId: config.aid !== undefined ? config.aid : undefined,
+                  tls: config.tls === 'tls',
+                }
+                break
+              }
+              default: {
+                console.error('Invalid node type')
+                throw new TypeError('Invalid node type')
+              }
             }
           } else {
-            console.error('Invalid base64 format');
-            throw new TypeError('Invalid base64 format');
+            console.error('Invalid base64 format')
+            throw new TypeError('Invalid base64 format')
           }
         }
 
-        const type = node.type as NodeTypeEnum;
+        const type = node.type as NodeTypeEnum
 
         // istanbul ignore next
         if (node['udp-relay']) {
@@ -167,8 +187,12 @@ export default class CustomProvider extends Provider {
               return VlessNodeConfigValidator.parse(node)
 
             default:
-              
-              throw new TypeError(`无法识别的节点类型：${type}`);
+              if (node.base64) {
+                console.error(
+                  'Base64 extraction is only supported for shadowsocks and vmess',
+                )
+              }
+              throw new TypeError(`无法识别的节点类型：${type}`)
           }
         })()
 
@@ -182,11 +206,11 @@ export default class CustomProvider extends Provider {
 
         parsedNodeList.push(parsedNode)
       } catch (err) {
-        console.error(`Error parsing node at index ${index}:`, err);
+        console.error(`Error parsing node at index ${index}:`, err)
       }
-    });
+    })
 
-    return parsedNodeList;
+    return parsedNodeList
   }
 
   public prepareVmessNodeConfig(node: VmessNodeConfig): VmessNodeConfig {
