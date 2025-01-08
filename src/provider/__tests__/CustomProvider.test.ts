@@ -120,7 +120,7 @@ test('CustomProvider with hooks', async (t) => {
     {
       type: NodeTypeEnum.Shadowsocks,
       nodeName: 'test',
-      hostname: 'example.org',
+      hostname: 'example.com',
       port: 443,
       method: 'chacha20-ietf-poly1305',
       password: 'password',
@@ -133,9 +133,7 @@ test('CustomProvider with hooks', async (t) => {
   const provider = new CustomProvider('test', {
     type: SupportProviderEnum.Custom,
     nodeList,
-    hooks: {
-      afterNodeListResponse,
-    },
+    afterNodeListResponse, // Pass the hook here
   })
 
   t.deepEqual(await provider.getNodeList(), [

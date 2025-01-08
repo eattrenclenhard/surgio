@@ -31,6 +31,9 @@ export default class CustomProvider extends Provider {
     | unknown[]
     | ((params: GetNodeListParams) => Promise<unknown[]>)
   public readonly underlyingProxy?: string
+  public readonly afterNodeListResponse?: (
+    nodeList: PossibleNodeConfigType[],
+  ) => void
 
   constructor(name: string, config: CustomProviderConfig) {
     super(name, config)
@@ -41,6 +44,7 @@ export default class CustomProvider extends Provider {
         z.function().args(z.any()).returns(z.any()),
       ]),
       underlyingProxy: z.ostring(),
+      afterNodeListResponse: z.function().args(z.array(z.any())).optional(),
     })
     const result = schema.safeParse(config)
 
@@ -54,6 +58,7 @@ export default class CustomProvider extends Provider {
 
     this.nodeList = result.data.nodeList
     this.underlyingProxy = result.data.underlyingProxy
+    this.afterNodeListResponse = result.data.afterNodeListResponse
   }
 
   public getNodeList: GetNodeListFunction = async (
@@ -209,6 +214,10 @@ export default class CustomProvider extends Provider {
         console.error(`Error parsing node at index ${index}:`, err)
       }
     })
+
+    if (this.afterNodeListResponse) {
+      await this.afterNodeListResponse(parsedNodeList)
+    }
 
     return parsedNodeList
   }
